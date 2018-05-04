@@ -1,0 +1,37 @@
+nav button {
+    margin: 5px;
+}
+
+.row {
+    
+}
+
+.dot {
+    width: 5%;
+    padding-top: 5%;
+    background-color: cadetblue;
+}
+
+.controls {
+    margin: 20px;
+}
+
+.circle {
+    border-radius: 50%;
+}
+
+.redBtn {
+    background-color: red;
+}
+
+.greenBtn {
+    background-color: green;
+}
+
+.blueBtn {
+    background-color: blue;
+}
+
+.yellowBtn {
+    background-color: yellow;
+}
