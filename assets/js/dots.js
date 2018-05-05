@@ -1,5 +1,7 @@
 var level = [];
 
+var moveCount = 0;
+
 function randomCell() {
     var typeNum = Math.ceil(Math.random() * 4);
     switch(typeNum) {
@@ -37,17 +39,23 @@ function setupBoard() {
     
     level[0][0].controlled = true;
     $(".redBtn").on("click", function() {
+        moveCount += 1;
         changeControlled("red");
     });
     $(".greenBtn").on("click", function() {
-        changeControlled("green");
+        moveCount += 1;
+        changeControlled("green"); 
     });
     $(".blueBtn").on("click", function() {
+        moveCount += 1;
         changeControlled("blue");
     });
     $(".yellowBtn").on("click", function() {
+        moveCount += 1;
         changeControlled("yellow");
     });
+
+    changeControlled(level[0][0].type);
 }
 
 function drawBoard() {
@@ -75,6 +83,7 @@ function changeControlled(color) {
             }
         }
     }
+    $("#moveCountDisplay").text(moveCount);
     drawBoard();
 }
 
