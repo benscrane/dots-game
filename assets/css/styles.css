@@ -31,3 +31,16 @@ nav button {
 .yellowBtn {
     background-color: yellow;
 }
+
+.square-container {
+    height: 800px;
+    width: 800px;
+    left: 20%;
+}
+
+.controls .circle {
+    float: left;
+    width: 25%;
+    padding-top: 25%;
+    margin-bottom: 10px;
+}
