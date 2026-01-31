@@ -2,6 +2,7 @@ import { writable, derived } from 'svelte/store';
 
 const GRID_SIZE = 20;
 const COLORS = ['red', 'green', 'blue', 'yellow'];
+const ANIMATION_WAVE_DELAY = 50; // ms delay between each wave
 
 function randomColor() {
   return COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -15,6 +16,7 @@ function createInitialGrid() {
       row.push({
         color: randomColor(),
         controlled: i === 0 && j === 0,
+        animationWave: null, // Track which wave this cell was captured in
       });
     }
     grid.push(row);
@@ -34,7 +36,7 @@ function createGameStore() {
     selectColor: (color) => {
       update((state) => {
         const newGrid = state.grid.map((row) =>
-          row.map((cell) => ({ ...cell }))
+          row.map((cell) => ({ ...cell, animationWave: null }))
         );
 
         // Change all controlled cells to the new color
@@ -46,20 +48,31 @@ function createGameStore() {
           }
         }
 
-        // Expand to adjacent cells that match the color
+        // Expand to adjacent cells that match the color, tracking waves
+        let wave = 0;
         let changed = true;
         while (changed) {
           changed = false;
+          const cellsToCapture = [];
+
           for (let i = 0; i < GRID_SIZE; i++) {
             for (let j = 0; j < GRID_SIZE; j++) {
               if (!newGrid[i][j].controlled && newGrid[i][j].color === color) {
                 if (hasControlledNeighbor(newGrid, i, j)) {
-                  newGrid[i][j].controlled = true;
+                  cellsToCapture.push({ i, j });
                   changed = true;
                 }
               }
             }
           }
+
+          // Capture all cells in this wave with the wave number for animation
+          for (const { i, j } of cellsToCapture) {
+            newGrid[i][j].controlled = true;
+            newGrid[i][j].animationWave = wave;
+          }
+
+          wave++;
         }
 
         return {
@@ -92,4 +105,4 @@ function hasControlledNeighbor(grid, i, j) {
 
 export const game = createGameStore();
 export const GAME_COLORS = COLORS;
-export { GRID_SIZE };
+export { GRID_SIZE, ANIMATION_WAVE_DELAY };
