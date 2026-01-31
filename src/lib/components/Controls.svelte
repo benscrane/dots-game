@@ -1,5 +1,5 @@
 <script>
-  import { game, GAME_COLORS } from '../stores/game.js';
+  import { game, GAME_COLORS, isGameWon } from '../stores/game.js';
 
   const colorMap = {
     red: '#e74c3c',
@@ -17,8 +17,10 @@
     {#each GAME_COLORS as color}
       <button
         class="color-btn"
+        class:disabled={$isGameWon}
         style="background-color: {colorMap[color]}"
         aria-label={color}
+        disabled={$isGameWon}
         on:click={() => game.selectColor(color)}
       ></button>
     {/each}
@@ -78,6 +80,17 @@
 
   .color-btn:active {
     transform: scale(0.95);
+  }
+
+  .color-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .color-btn.disabled:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
   @media (min-width: 768px) {
