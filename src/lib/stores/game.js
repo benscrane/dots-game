@@ -4,6 +4,8 @@ const GRID_SIZE = 20;
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 const COLORS = ['red', 'green', 'blue', 'yellow'];
 const ANIMATION_WAVE_DELAY = 50; // ms delay between each wave
+const BOMB_COUNT = 8; // Number of bombs to place on the board
+const BOMB_RADIUS = 2; // Blast radius (Manhattan distance)
 
 function randomColor() {
   return COLORS[Math.floor(Math.random() * COLORS.length)];
@@ -18,10 +20,24 @@ function createInitialGrid() {
         color: randomColor(),
         controlled: i === 0 && j === 0,
         animationWave: null, // Track which wave this cell was captured in
+        hasBomb: false,
       });
     }
     grid.push(row);
   }
+
+  // Randomly place bombs (not on the starting cell)
+  let bombsPlaced = 0;
+  while (bombsPlaced < BOMB_COUNT) {
+    const i = Math.floor(Math.random() * GRID_SIZE);
+    const j = Math.floor(Math.random() * GRID_SIZE);
+    // Don't place bomb on starting cell or where one already exists
+    if (!(i === 0 && j === 0) && !grid[i][j].hasBomb) {
+      grid[i][j].hasBomb = true;
+      bombsPlaced++;
+    }
+  }
+
   return grid;
 }
 
@@ -49,6 +65,9 @@ function createGameStore() {
           }
         }
 
+        // Track bombs that need to explode
+        const bombsToExplode = [];
+
         // Expand to adjacent cells that match the color, tracking waves
         let wave = 0;
         let changed = true;
@@ -71,9 +90,49 @@ function createGameStore() {
           for (const { i, j } of cellsToCapture) {
             newGrid[i][j].controlled = true;
             newGrid[i][j].animationWave = wave;
+            // Check if this cell has a bomb
+            if (newGrid[i][j].hasBomb) {
+              bombsToExplode.push({ i, j, wave });
+              newGrid[i][j].hasBomb = false; // Bomb is consumed
+            }
           }
 
           wave++;
+        }
+
+        // Process bomb explosions (can cause chain reactions)
+        while (bombsToExplode.length > 0) {
+          const bomb = bombsToExplode.shift();
+          const explosionWave = bomb.wave + 1;
+
+          // Capture all cells within blast radius
+          for (let di = -BOMB_RADIUS; di <= BOMB_RADIUS; di++) {
+            for (let dj = -BOMB_RADIUS; dj <= BOMB_RADIUS; dj++) {
+              const ni = bomb.i + di;
+              const nj = bomb.j + dj;
+
+              // Check bounds and Manhattan distance
+              if (
+                ni >= 0 &&
+                ni < GRID_SIZE &&
+                nj >= 0 &&
+                nj < GRID_SIZE &&
+                Math.abs(di) + Math.abs(dj) <= BOMB_RADIUS
+              ) {
+                if (!newGrid[ni][nj].controlled) {
+                  newGrid[ni][nj].controlled = true;
+                  newGrid[ni][nj].color = color;
+                  newGrid[ni][nj].animationWave = explosionWave;
+
+                  // Chain reaction: if this cell has a bomb, add it to the queue
+                  if (newGrid[ni][nj].hasBomb) {
+                    bombsToExplode.push({ i: ni, j: nj, wave: explosionWave });
+                    newGrid[ni][nj].hasBomb = false;
+                  }
+                }
+              }
+            }
+          }
         }
 
         return {
