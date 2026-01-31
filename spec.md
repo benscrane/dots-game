@@ -14,6 +14,8 @@ Starting from the top-left corner, the player selects colors to expand their ter
 | Colors | 4 | red, green, blue, yellow |
 | Move Limit | 25 | Maximum moves allowed (optional) |
 | Origin | Top-left (0,0) | Starting cell for player territory |
+| Bomb Count | 8 | Number of bomb powerups on the board |
+| Bomb Radius | 2 | Blast radius (Manhattan distance) |
 
 ## Game State
 
@@ -23,7 +25,9 @@ Starting from the top-left corner, the player selects colors to expand their ter
 - Each cell has:
   - `color`: One of the available colors
   - `controlled`: Boolean indicating if the cell is part of player territory
+  - `hasBomb`: Boolean indicating if the cell contains a bomb powerup
 - Colors are randomly assigned at game start
+- Bombs are randomly distributed (excluding the starting cell)
 
 ### Player Territory
 
@@ -61,6 +65,46 @@ Two cells are adjacent if they share an edge (orthogonal neighbors only):
 
 Diagonal neighbors are **not** considered adjacent.
 
+## Bomb Powerups
+
+Bombs are special powerups randomly distributed across the board that help the player capture territory faster.
+
+### Configuration
+
+| Parameter | Default Value | Description |
+|-----------|---------------|-------------|
+| Bomb Count | 8 | Number of bombs placed on the board |
+| Blast Radius | 2 | Manhattan distance of explosion effect |
+
+### Behavior
+
+- Bombs are randomly placed during board initialization (never on the starting cell)
+- Each bomb is displayed as an icon inside its cell
+- When a cell containing a bomb is captured (through normal flood-fill expansion), the bomb explodes
+- The explosion captures all cells within the blast radius, **regardless of their color**
+- Captured cells are converted to the player's current color
+- The bomb is consumed after exploding
+
+### Chain Reactions
+
+- If an explosion captures a cell containing another bomb, that bomb also explodes
+- Chain reactions continue until no more bombs are triggered
+- Each explosion in a chain uses incrementing animation waves for visual effect
+
+### Blast Radius
+
+The blast radius uses Manhattan distance (not Euclidean):
+- A radius of 2 means cells up to 2 steps away (orthogonally) are affected
+- Example pattern for radius 2:
+  ```
+      X
+    X X X
+  X X B X X
+    X X X
+      X
+  ```
+  Where B = bomb location, X = affected cells
+
 ## Expansion Algorithm
 
 ```
@@ -71,6 +115,7 @@ function expandTerritory(grid, newColor):
             cell.color = newColor
 
     // Phase 2: Iteratively absorb matching adjacent cells
+    bombsToExplode = []
     repeat:
         changed = false
         for each cell in grid:
@@ -78,7 +123,21 @@ function expandTerritory(grid, newColor):
                 if hasControlledNeighbor(cell):
                     cell.controlled = true
                     changed = true
+                    if cell.hasBomb:
+                        bombsToExplode.add(cell)
+                        cell.hasBomb = false
     until not changed
+
+    // Phase 3: Process bomb explosions (with chain reactions)
+    while bombsToExplode is not empty:
+        bomb = bombsToExplode.pop()
+        for each cell within BOMB_RADIUS (Manhattan distance) of bomb:
+            if not cell.controlled:
+                cell.controlled = true
+                cell.color = newColor
+                if cell.hasBomb:
+                    bombsToExplode.add(cell)
+                    cell.hasBomb = false
 ```
 
 ## Win/Loss Conditions
@@ -119,7 +178,7 @@ Game state is managed via Svelte stores (`src/lib/stores/game.js`):
 
 ```javascript
 {
-  grid: Cell[][],      // 2D array of {color, controlled}
+  grid: Cell[][],      // 2D array of {color, controlled, hasBomb}
   moveCount: number,   // Current number of moves
 }
 ```
