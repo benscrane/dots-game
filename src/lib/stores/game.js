@@ -1,6 +1,7 @@
 import { writable, derived } from 'svelte/store';
 
 const GRID_SIZE = 20;
+const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 const COLORS = ['red', 'green', 'blue', 'yellow'];
 const ANIMATION_WAVE_DELAY = 50; // ms delay between each wave
 const BOMB_COUNT = 8; // Number of bombs to place on the board
@@ -163,5 +164,19 @@ function hasControlledNeighbor(grid, i, j) {
 }
 
 export const game = createGameStore();
+
+// Derived store to check if all cells are controlled (game won)
+export const isGameWon = derived(game, ($game) => {
+  let controlledCount = 0;
+  for (const row of $game.grid) {
+    for (const cell of row) {
+      if (cell.controlled) {
+        controlledCount++;
+      }
+    }
+  }
+  return controlledCount === TOTAL_CELLS;
+});
+
 export const GAME_COLORS = COLORS;
 export { GRID_SIZE, ANIMATION_WAVE_DELAY };
