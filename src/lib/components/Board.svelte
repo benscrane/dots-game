@@ -20,13 +20,15 @@
   .board {
     display: grid;
     grid-template-columns: repeat(var(--grid-size), 1fr);
-    gap: 1px;
+    gap: 4px;
     width: 100%;
     max-width: min(90vw, 90vh, 600px);
     aspect-ratio: 1;
-    background: #ddd;
-    border-radius: 4px;
-    overflow: hidden;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+    box-sizing: border-box;
   }
 
   @media (min-width: 768px) {
