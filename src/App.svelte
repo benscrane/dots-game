@@ -33,6 +33,10 @@
       Any adjacent dots matching that color will be captured and added to your territory.
     </p>
     <p>
+      <strong>Bombs:</strong> Some dots contain bombs. When you capture a bomb, it explodes and
+      captures all nearby dots regardless of their color!
+    </p>
+    <p>
       <strong>Strategy:</strong> Try to win in as few moves as possible!
     </p>
   </div>
