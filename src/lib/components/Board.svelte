@@ -6,7 +6,11 @@
 <div class="board" style="--grid-size: {GRID_SIZE}">
   {#each $game.grid as row, i}
     {#each row as cell, j}
-      <Cell color={cell.color} controlled={cell.controlled} />
+      <Cell
+        color={cell.color}
+        controlled={cell.controlled}
+        animationWave={cell.animationWave}
+      />
     {/each}
   {/each}
 </div>
