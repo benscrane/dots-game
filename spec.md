@@ -12,10 +12,23 @@ Starting from the top-left corner, the player selects colors to expand their ter
 |-----------|---------------|-------------|
 | Grid Size | 20 x 20 | Number of rows and columns |
 | Colors | 4 | red, green, blue, yellow |
-| Move Limit | 25 | Maximum moves allowed (optional) |
 | Origin | Top-left (0,0) | Starting cell for player territory |
-| Bomb Count | 8 | Number of bomb powerups on the board |
-| Bomb Radius | 2 | Blast radius (Manhattan distance) |
+
+### Difficulty Levels
+
+The game features three difficulty levels that control the move limit and bomb configuration:
+
+| Difficulty | Move Limit | Bomb Count | Bomb Radius | Description |
+|------------|------------|------------|-------------|-------------|
+| Easy | 40 | 12 | 3 | More moves and bombs with larger explosions |
+| Medium | 30 | 8 | 2 | Balanced challenge (default) |
+| Hard | 22 | 4 | 2 | Fewer moves and fewer bombs |
+
+- **Move Limit**: Maximum number of color selections allowed before losing
+- **Bomb Count**: Number of bomb powerups distributed across the board
+- **Bomb Radius**: Manhattan distance of each bomb's explosion effect
+
+Players can change difficulty at any time using the dropdown in the navigation bar. Changing difficulty starts a new game with the selected settings.
 
 ## Game State
 
@@ -180,6 +193,7 @@ Game state is managed via Svelte stores (`src/lib/stores/game.js`):
 {
   grid: Cell[][],      // 2D array of {color, controlled, hasBomb}
   moveCount: number,   // Current number of moves
+  difficulty: string,  // Current difficulty level ('easy', 'medium', 'hard')
 }
 ```
 
@@ -188,7 +202,8 @@ Game state is managed via Svelte stores (`src/lib/stores/game.js`):
 | Action | Description |
 |--------|-------------|
 | `selectColor(color)` | Execute a move with the given color |
-| `reset()` | Start a new game with fresh random grid |
+| `setDifficulty(difficulty)` | Change difficulty and start a new game |
+| `reset()` | Start a new game with current difficulty settings |
 
 ### Derived State
 
@@ -205,20 +220,22 @@ Game state is managed via Svelte stores (`src/lib/stores/game.js`):
 src/
 ├── lib/
 │   ├── components/
-│   │   ├── Board.svelte      # Grid display
-│   │   ├── Cell.svelte       # Individual cell
-│   │   └── Controls.svelte   # Color buttons & stats
+│   │   ├── Board.svelte        # Grid display
+│   │   ├── Cell.svelte         # Individual cell
+│   │   ├── Controls.svelte     # Color buttons & move counter
+│   │   ├── VictoryModal.svelte # Win screen with confetti
+│   │   └── GameOverModal.svelte # Loss screen (out of moves)
 │   └── stores/
-│       └── game.js           # Game state & logic
-├── App.svelte                # Main layout
-└── main.js                   # Entry point
+│       └── game.js             # Game state, logic & difficulty config
+├── App.svelte                  # Main layout & difficulty selector
+└── main.js                     # Entry point
 ```
 
 ## Future Enhancements
 
-- [ ] Move limit enforcement with loss condition
-- [ ] Victory detection and celebration
-- [ ] Difficulty levels (grid size / color count)
+- [x] Move limit enforcement with loss condition
+- [x] Victory detection and celebration
+- [x] Difficulty levels (move limit, bomb count, bomb radius)
 - [ ] Move history and undo functionality
 - [ ] Best score tracking (localStorage)
 - [ ] Hint system showing optimal next move

@@ -1,5 +1,5 @@
 <script>
-  import { game, GAME_COLORS, isGameWon } from '../stores/game.js';
+  import { game, GAME_COLORS, isGameWon, isGameLost, DIFFICULTIES } from '../stores/game.js';
 
   const colorMap = {
     red: '#e74c3c',
@@ -7,20 +7,24 @@
     blue: '#3498db',
     yellow: '#f1c40f',
   };
+
+  $: difficultyConfig = DIFFICULTIES[$game.difficulty];
+  $: moveLimit = difficultyConfig.moveLimit;
+  $: isGameOver = $isGameWon || $isGameLost;
 </script>
 
 <div class="controls-panel">
   <div class="controls-header">
-    <span class="moves-display">Moves: {$game.moveCount}</span>
+    <span class="moves-display">Moves: {$game.moveCount} / {moveLimit}</span>
   </div>
   <div class="control-buttons">
     {#each GAME_COLORS as color}
       <button
         class="color-btn"
-        class:disabled={$isGameWon}
+        class:disabled={isGameOver}
         style="background-color: {colorMap[color]}"
         aria-label={color}
-        disabled={$isGameWon}
+        disabled={isGameOver}
         on:click={() => game.selectColor(color)}
       ></button>
     {/each}
