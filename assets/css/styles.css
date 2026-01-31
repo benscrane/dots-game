@@ -1,46 +1,167 @@
-nav button {
-    margin: 5px;
+/* Game Layout */
+.game-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
-.dot {
-    width: 5%;
-    padding-top: 5%;
-    background-color: cadetblue;
+/* Controls Panel */
+.controls-panel {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 500px;
+    box-sizing: border-box;
 }
 
-.controls {
-    margin: 20px;
+.controls-header {
+    display: flex;
+    align-items: center;
 }
 
-.circle {
+.moves-display {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+}
+
+/* Control Buttons */
+.control-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+}
+
+.color-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
     border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.color-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.color-btn:active {
+    transform: scale(0.95);
 }
 
 .redBtn {
-    background-color: red;
+    background-color: #e74c3c;
 }
 
 .greenBtn {
-    background-color: green;
+    background-color: #27ae60;
 }
 
 .blueBtn {
-    background-color: blue;
+    background-color: #3498db;
 }
 
 .yellowBtn {
-    background-color: yellow;
+    background-color: #f1c40f;
 }
 
-.square-container {
-    height: 800px;
-    width: 800px;
-    left: 20%;
+/* Game Board */
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    gap: 1px;
+    width: 100%;
+    max-width: min(90vw, 90vh, 600px);
+    aspect-ratio: 1;
+    background: #ddd;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
-.controls .circle {
-    float: left;
-    width: 25%;
-    padding-top: 25%;
-    margin-bottom: 10px;
+.game-board .row {
+    display: contents;
+}
+
+.dot {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: cadetblue;
+}
+
+/* Tablet and larger screens */
+@media (min-width: 768px) {
+    .game-wrapper {
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 2rem;
+        padding: 2rem;
+    }
+
+    .controls-panel {
+        flex-direction: column;
+        width: auto;
+        max-width: none;
+        padding: 1.5rem;
+        margin-bottom: 0;
+        position: sticky;
+        top: 1rem;
+    }
+
+    .control-buttons {
+        flex-direction: column;
+    }
+
+    .color-btn {
+        width: 56px;
+        height: 56px;
+    }
+
+    .moves-display {
+        font-size: 1.125rem;
+    }
+
+    .game-board {
+        max-width: min(70vw, 70vh, 600px);
+    }
+}
+
+/* Large screens */
+@media (min-width: 1024px) {
+    .game-board {
+        max-width: min(60vw, 70vh, 700px);
+    }
+
+    .color-btn {
+        width: 64px;
+        height: 64px;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+    .controls-panel {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .color-btn {
+        width: 40px;
+        height: 40px;
+    }
 }
