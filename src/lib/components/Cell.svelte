@@ -5,15 +5,23 @@
   export let controlled;
   export let animationWave = null;
 
+  const colorMap = {
+    red: '#e74c3c',
+    green: '#27ae60',
+    blue: '#3498db',
+    yellow: '#f1c40f',
+  };
+
   $: shouldAnimate = animationWave !== null;
   $: animationDelay = animationWave !== null ? animationWave * ANIMATION_WAVE_DELAY : 0;
+  $: cellColor = colorMap[color] || color;
 </script>
 
 <div
   class="cell"
   class:controlled
   class:capturing={shouldAnimate}
-  style="--cell-color: {color}; --animation-delay: {animationDelay}ms"
+  style="--cell-color: {cellColor}; --animation-delay: {animationDelay}ms"
 ></div>
 
 <style>
