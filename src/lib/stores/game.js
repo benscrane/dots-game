@@ -4,14 +4,36 @@ const GRID_SIZE = 20;
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 const COLORS = ['red', 'green', 'blue', 'yellow'];
 const ANIMATION_WAVE_DELAY = 50; // ms delay between each wave
-const BOMB_COUNT = 8; // Number of bombs to place on the board
-const BOMB_RADIUS = 2; // Blast radius (Manhattan distance)
+
+// Difficulty configurations
+export const DIFFICULTIES = {
+  easy: {
+    name: 'Easy',
+    moveLimit: 40,
+    bombCount: 12,
+    bombRadius: 3,
+  },
+  medium: {
+    name: 'Medium',
+    moveLimit: 30,
+    bombCount: 8,
+    bombRadius: 2,
+  },
+  hard: {
+    name: 'Hard',
+    moveLimit: 22,
+    bombCount: 4,
+    bombRadius: 2,
+  },
+};
+
+const DEFAULT_DIFFICULTY = 'medium';
 
 function randomColor() {
   return COLORS[Math.floor(Math.random() * COLORS.length)];
 }
 
-function createInitialGrid() {
+function createInitialGrid(bombCount) {
   const grid = [];
   for (let i = 0; i < GRID_SIZE; i++) {
     const row = [];
@@ -28,7 +50,7 @@ function createInitialGrid() {
 
   // Randomly place bombs (not on the starting cell)
   let bombsPlaced = 0;
-  while (bombsPlaced < BOMB_COUNT) {
+  while (bombsPlaced < bombCount) {
     const i = Math.floor(Math.random() * GRID_SIZE);
     const j = Math.floor(Math.random() * GRID_SIZE);
     // Don't place bomb on starting cell or where one already exists
@@ -42,9 +64,11 @@ function createInitialGrid() {
 }
 
 function createGameStore() {
+  const initialDifficulty = DIFFICULTIES[DEFAULT_DIFFICULTY];
   const { subscribe, set, update } = writable({
-    grid: createInitialGrid(),
+    grid: createInitialGrid(initialDifficulty.bombCount),
     moveCount: 0,
+    difficulty: DEFAULT_DIFFICULTY,
   });
 
   return {
@@ -52,6 +76,9 @@ function createGameStore() {
 
     selectColor: (color) => {
       update((state) => {
+        const difficultyConfig = DIFFICULTIES[state.difficulty];
+        const bombRadius = difficultyConfig.bombRadius;
+
         const newGrid = state.grid.map((row) =>
           row.map((cell) => ({ ...cell, animationWave: null }))
         );
@@ -106,8 +133,8 @@ function createGameStore() {
           const explosionWave = bomb.wave + 1;
 
           // Capture all cells within blast radius
-          for (let di = -BOMB_RADIUS; di <= BOMB_RADIUS; di++) {
-            for (let dj = -BOMB_RADIUS; dj <= BOMB_RADIUS; dj++) {
+          for (let di = -bombRadius; di <= bombRadius; di++) {
+            for (let dj = -bombRadius; dj <= bombRadius; dj++) {
               const ni = bomb.i + di;
               const nj = bomb.j + dj;
 
@@ -117,7 +144,7 @@ function createGameStore() {
                 ni < GRID_SIZE &&
                 nj >= 0 &&
                 nj < GRID_SIZE &&
-                Math.abs(di) + Math.abs(dj) <= BOMB_RADIUS
+                Math.abs(di) + Math.abs(dj) <= bombRadius
               ) {
                 if (!newGrid[ni][nj].controlled) {
                   newGrid[ni][nj].controlled = true;
@@ -136,16 +163,30 @@ function createGameStore() {
         }
 
         return {
+          ...state,
           grid: newGrid,
           moveCount: state.moveCount + 1,
         };
       });
     },
 
-    reset: () => {
+    setDifficulty: (difficulty) => {
+      const config = DIFFICULTIES[difficulty];
       set({
-        grid: createInitialGrid(),
+        grid: createInitialGrid(config.bombCount),
         moveCount: 0,
+        difficulty: difficulty,
+      });
+    },
+
+    reset: () => {
+      update((state) => {
+        const config = DIFFICULTIES[state.difficulty];
+        return {
+          grid: createInitialGrid(config.bombCount),
+          moveCount: 0,
+          difficulty: state.difficulty,
+        };
       });
     },
   };
@@ -176,6 +217,21 @@ export const isGameWon = derived(game, ($game) => {
     }
   }
   return controlledCount === TOTAL_CELLS;
+});
+
+// Derived store to check if player has run out of moves (game lost)
+export const isGameLost = derived(game, ($game) => {
+  const config = DIFFICULTIES[$game.difficulty];
+  let controlledCount = 0;
+  for (const row of $game.grid) {
+    for (const cell of row) {
+      if (cell.controlled) {
+        controlledCount++;
+      }
+    }
+  }
+  // Lost if out of moves and not all cells are controlled
+  return $game.moveCount >= config.moveLimit && controlledCount < TOTAL_CELLS;
 });
 
 export const GAME_COLORS = COLORS;

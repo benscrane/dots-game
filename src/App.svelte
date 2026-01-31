@@ -2,28 +2,48 @@
   import Board from './lib/components/Board.svelte';
   import Controls from './lib/components/Controls.svelte';
   import VictoryModal from './lib/components/VictoryModal.svelte';
+  import GameOverModal from './lib/components/GameOverModal.svelte';
+  import { game, DIFFICULTIES } from './lib/stores/game.js';
 
   let showInstructions = false;
+
+  const difficultyKeys = Object.keys(DIFFICULTIES);
+
+  function handleDifficultyChange(event) {
+    game.setDifficulty(event.target.value);
+  }
 </script>
 
 <header class="navbar">
   <div class="navbar-brand">Dots</div>
-  <button
-    class="help-btn"
-    class:active={showInstructions}
-    on:click={() => (showInstructions = !showInstructions)}
-    aria-label="How to play"
-    aria-expanded={showInstructions}
-  >
-    ?
-  </button>
+  <div class="navbar-controls">
+    <select
+      class="difficulty-select"
+      value={$game.difficulty}
+      on:change={handleDifficultyChange}
+      aria-label="Select difficulty"
+    >
+      {#each difficultyKeys as key}
+        <option value={key}>{DIFFICULTIES[key].name}</option>
+      {/each}
+    </select>
+    <button
+      class="help-btn"
+      class:active={showInstructions}
+      on:click={() => (showInstructions = !showInstructions)}
+      aria-label="How to play"
+      aria-expanded={showInstructions}
+    >
+      ?
+    </button>
+  </div>
 </header>
 
 {#if showInstructions}
   <div class="instructions">
     <h3>How to Play</h3>
     <p>
-      <strong>Goal:</strong> Fill the entire board with one color.
+      <strong>Goal:</strong> Fill the entire board with one color before running out of moves.
     </p>
     <p>
       <strong>Starting point:</strong> You control the dot in the top-left corner.
@@ -37,7 +57,8 @@
       captures all nearby dots regardless of their color!
     </p>
     <p>
-      <strong>Strategy:</strong> Try to win in as few moves as possible!
+      <strong>Difficulty:</strong> Choose your challenge level from the dropdown. Harder difficulties
+      give fewer moves and bombs, while easier levels are more forgiving.
     </p>
   </div>
 {/if}
@@ -48,6 +69,7 @@
 </main>
 
 <VictoryModal />
+<GameOverModal />
 
 <style>
   :global(*) {
@@ -76,6 +98,39 @@
     font-size: 1.25rem;
     font-weight: 700;
     color: #333;
+  }
+
+  .navbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .difficulty-select {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #333;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    padding-right: 1.75rem;
+  }
+
+  .difficulty-select:hover {
+    border-color: #333;
+  }
+
+  .difficulty-select:focus {
+    outline: none;
+    border-color: #333;
+    box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.1);
   }
 
   .help-btn {
