@@ -11,6 +11,7 @@
         controlled={cell.controlled}
         animationWave={cell.animationWave}
         hasBomb={cell.hasBomb}
+        hasColorConverter={cell.hasColorConverter}
       />
     {/each}
   {/each}

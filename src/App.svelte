@@ -3,6 +3,7 @@
   import Controls from './lib/components/Controls.svelte';
   import VictoryModal from './lib/components/VictoryModal.svelte';
   import GameOverModal from './lib/components/GameOverModal.svelte';
+  import ColorConverterModal from './lib/components/ColorConverterModal.svelte';
   import { game, DIFFICULTIES } from './lib/stores/game.js';
   import { currentHighScore } from './lib/stores/highscores.js';
 
@@ -58,8 +59,12 @@
       captures all nearby dots regardless of their color!
     </p>
     <p>
+      <strong>Color Converters:</strong> Some dots contain color converters. When captured, you can
+      change all uncontrolled dots of one color to another color of your choice!
+    </p>
+    <p>
       <strong>Difficulty:</strong> Choose your challenge level from the dropdown. Harder difficulties
-      give fewer moves and bombs, while easier levels are more forgiving.
+      give fewer moves, bombs, and converters.
     </p>
   </div>
 {/if}
@@ -77,6 +82,7 @@
 
 <VictoryModal />
 <GameOverModal />
+<ColorConverterModal />
 
 <style>
   :global(*) {
