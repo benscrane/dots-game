@@ -12,18 +12,21 @@ export const DIFFICULTIES = {
     moveLimit: 40,
     bombCount: 12,
     bombRadius: 3,
+    colorConverterCount: 3,
   },
   medium: {
     name: 'Medium',
     moveLimit: 30,
     bombCount: 8,
     bombRadius: 2,
+    colorConverterCount: 2,
   },
   hard: {
     name: 'Hard',
     moveLimit: 22,
     bombCount: 4,
     bombRadius: 2,
+    colorConverterCount: 1,
   },
 };
 
@@ -33,7 +36,7 @@ function randomColor() {
   return COLORS[Math.floor(Math.random() * COLORS.length)];
 }
 
-function createInitialGrid(bombCount) {
+function createInitialGrid(bombCount, colorConverterCount = 0) {
   const grid = [];
   for (let i = 0; i < GRID_SIZE; i++) {
     const row = [];
@@ -43,6 +46,7 @@ function createInitialGrid(bombCount) {
         controlled: i === 0 && j === 0,
         animationWave: null, // Track which wave this cell was captured in
         hasBomb: false,
+        hasColorConverter: false,
       });
     }
     grid.push(row);
@@ -74,17 +78,30 @@ function createInitialGrid(bombCount) {
     }
   }
 
+  // Randomly place color converters (not on starting cell, not on bombs)
+  let convertersPlaced = 0;
+  while (convertersPlaced < colorConverterCount) {
+    const i = Math.floor(Math.random() * GRID_SIZE);
+    const j = Math.floor(Math.random() * GRID_SIZE);
+    // Don't place on starting cell, bombs, or existing converters
+    if (!(i === 0 && j === 0) && !grid[i][j].hasBomb && !grid[i][j].hasColorConverter) {
+      grid[i][j].hasColorConverter = true;
+      convertersPlaced++;
+    }
+  }
+
   return grid;
 }
 
 function createGameStore() {
   const initialDifficulty = DIFFICULTIES[DEFAULT_DIFFICULTY];
   const { subscribe, set, update } = writable({
-    grid: createInitialGrid(initialDifficulty.bombCount),
+    grid: createInitialGrid(initialDifficulty.bombCount, initialDifficulty.colorConverterCount),
     moveCount: 0,
     difficulty: DEFAULT_DIFFICULTY,
     lastMoveHadExplosion: false,
     lastMoveCapturedCells: 0,
+    pendingColorConverter: false, // True when a converter was captured and modal should show
   });
 
   return {
@@ -108,10 +125,11 @@ function createGameStore() {
           }
         }
 
-        // Track bombs that need to explode
+        // Track bombs that need to explode and converters captured
         const bombsToExplode = [];
         let totalCaptured = 0;
         let hadExplosion = false;
+        let capturedConverter = false;
 
         // Expand to adjacent cells that match the color, tracking waves
         let wave = 0;
@@ -141,6 +159,11 @@ function createGameStore() {
               bombsToExplode.push({ i, j, wave });
               newGrid[i][j].hasBomb = false; // Bomb is consumed
               hadExplosion = true;
+            }
+            // Check if this cell has a color converter
+            if (newGrid[i][j].hasColorConverter) {
+              newGrid[i][j].hasColorConverter = false; // Converter is consumed
+              capturedConverter = true;
             }
           }
 
@@ -178,6 +201,11 @@ function createGameStore() {
                     newGrid[ni][nj].hasBomb = false;
                     hadExplosion = true;
                   }
+                  // Check if this cell has a color converter
+                  if (newGrid[ni][nj].hasColorConverter) {
+                    newGrid[ni][nj].hasColorConverter = false;
+                    capturedConverter = true;
+                  }
                 }
               }
             }
@@ -190,18 +218,47 @@ function createGameStore() {
           moveCount: state.moveCount + 1,
           lastMoveHadExplosion: hadExplosion,
           lastMoveCapturedCells: totalCaptured,
+          pendingColorConverter: capturedConverter,
         };
       });
+    },
+
+    applyColorConverter: (fromColor, toColor) => {
+      update((state) => {
+        const newGrid = state.grid.map((row) =>
+          row.map((cell) => {
+            // Change all uncontrolled cells of fromColor to toColor
+            if (!cell.controlled && cell.color === fromColor) {
+              return { ...cell, color: toColor };
+            }
+            return cell;
+          })
+        );
+
+        return {
+          ...state,
+          grid: newGrid,
+          pendingColorConverter: false,
+        };
+      });
+    },
+
+    dismissColorConverter: () => {
+      update((state) => ({
+        ...state,
+        pendingColorConverter: false,
+      }));
     },
 
     setDifficulty: (difficulty) => {
       const config = DIFFICULTIES[difficulty];
       set({
-        grid: createInitialGrid(config.bombCount),
+        grid: createInitialGrid(config.bombCount, config.colorConverterCount),
         moveCount: 0,
         difficulty: difficulty,
         lastMoveHadExplosion: false,
         lastMoveCapturedCells: 0,
+        pendingColorConverter: false,
       });
     },
 
@@ -209,11 +266,12 @@ function createGameStore() {
       update((state) => {
         const config = DIFFICULTIES[state.difficulty];
         return {
-          grid: createInitialGrid(config.bombCount),
+          grid: createInitialGrid(config.bombCount, config.colorConverterCount),
           moveCount: 0,
           difficulty: state.difficulty,
           lastMoveHadExplosion: false,
           lastMoveCapturedCells: 0,
+          pendingColorConverter: false,
         };
       });
     },

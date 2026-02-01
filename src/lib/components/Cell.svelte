@@ -5,6 +5,7 @@
   export let controlled;
   export let animationWave = null;
   export let hasBomb = false;
+  export let hasColorConverter = false;
 
   const colorMap = {
     red: '#e74c3c',
@@ -23,6 +24,7 @@
   class:controlled
   class:capturing={shouldAnimate}
   class:has-bomb={hasBomb}
+  class:has-converter={hasColorConverter}
   style="--cell-color: {cellColor}; --animation-delay: {animationDelay}ms"
 >
   {#if hasBomb}
@@ -31,6 +33,15 @@
       <rect x="10" y="2" width="4" height="6" rx="1" fill="#2c3e50"/>
       <path d="M14 4 L18 2 L17 5 L14 5" fill="#e74c3c"/>
       <ellipse cx="9" cy="12" rx="2" ry="2.5" fill="#5d6d7e" opacity="0.5"/>
+    </svg>
+  {:else if hasColorConverter}
+    <svg class="converter-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="6" width="16" height="12" rx="2" fill="#2c3e50"/>
+      <rect x="6" y="8" width="4" height="4" rx="1" fill="#e74c3c"/>
+      <rect x="14" y="8" width="4" height="4" rx="1" fill="#3498db"/>
+      <rect x="6" y="14" width="4" height="2" rx="0.5" fill="#27ae60"/>
+      <rect x="14" y="14" width="4" height="2" rx="0.5" fill="#f1c40f"/>
+      <path d="M10.5 11 L13.5 11 M13.5 11 L12 9.5 M13.5 11 L12 12.5" stroke="white" stroke-width="1" stroke-linecap="round"/>
     </svg>
   {/if}
 </div>
@@ -56,7 +67,8 @@
     animation-delay: var(--animation-delay);
   }
 
-  .bomb-icon {
+  .bomb-icon,
+  .converter-icon {
     width: 60%;
     height: 60%;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
