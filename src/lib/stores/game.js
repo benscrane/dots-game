@@ -48,6 +48,20 @@ function createInitialGrid(bombCount) {
     grid.push(row);
   }
 
+  // Ensure adjacent cells to the starting cell (0,0) don't have the same color
+  const startColor = grid[0][0].color;
+  const adjacentCells = [
+    [0, 1], // right
+    [1, 0], // below
+  ];
+  for (const [i, j] of adjacentCells) {
+    if (grid[i][j].color === startColor) {
+      // Pick a different color
+      const otherColors = COLORS.filter((c) => c !== startColor);
+      grid[i][j].color = otherColors[Math.floor(Math.random() * otherColors.length)];
+    }
+  }
+
   // Randomly place bombs (not on the starting cell)
   let bombsPlaced = 0;
   while (bombsPlaced < bombCount) {
