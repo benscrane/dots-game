@@ -1,8 +1,22 @@
 <script>
   import { game, isGameLost, DIFFICULTIES } from '../stores/game.js';
+  import { sounds } from '../stores/sounds.js';
   import { fade, scale } from 'svelte/transition';
 
   $: moveLimit = DIFFICULTIES[$game.difficulty].moveLimit;
+
+  let hasPlayedSound = false;
+
+  // Play game over sound when game is lost
+  $: if ($isGameLost && !hasPlayedSound) {
+    sounds.gameOver();
+    hasPlayedSound = true;
+  }
+
+  // Reset sound flag when game resets
+  $: if (!$isGameLost) {
+    hasPlayedSound = false;
+  }
 
   function handleRestart() {
     game.reset();

@@ -1,8 +1,33 @@
 <script>
-  import { game, isGameWon } from '../stores/game.js';
+  import { game, isGameWon, DIFFICULTIES } from '../stores/game.js';
+  import { highScores, currentHighScore } from '../stores/highscores.js';
+  import { sounds } from '../stores/sounds.js';
   import { fade, scale } from 'svelte/transition';
+  import { onMount } from 'svelte';
 
   $: moveCount = $game.moveCount;
+  $: difficulty = $game.difficulty;
+  $: difficultyName = DIFFICULTIES[difficulty].name;
+
+  let isNewRecord = false;
+  let hasPlayedSound = false;
+
+  // Check for new record when game is won
+  $: if ($isGameWon && !hasPlayedSound) {
+    isNewRecord = highScores.checkAndUpdate(difficulty, moveCount);
+    if (isNewRecord) {
+      sounds.newRecord();
+    } else {
+      sounds.victory();
+    }
+    hasPlayedSound = true;
+  }
+
+  // Reset sound flag when game resets
+  $: if (!$isGameWon) {
+    hasPlayedSound = false;
+    isNewRecord = false;
+  }
 
   function handleRestart() {
     game.reset();
@@ -20,7 +45,10 @@
       {/each}
     </div>
     <div class="modal" transition:scale={{ duration: 400, delay: 100 }}>
-      <div class="trophy">
+      {#if isNewRecord}
+        <div class="new-record-badge">New Record!</div>
+      {/if}
+      <div class="trophy" class:new-record={isNewRecord}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M8 21h8m-4-4v4m-5-8a5 5 0 0 1-4-5V4h18v4a5 5 0 0 1-4 5m-5 0v4"/>
           <path d="M5 4v4a5 5 0 0 0 5 5h0a5 5 0 0 0 5-5V4"/>
@@ -28,6 +56,11 @@
       </div>
       <h2>You Won!</h2>
       <p class="stats">Completed in <strong>{moveCount}</strong> moves</p>
+      {#if $currentHighScore !== null}
+        <p class="high-score">
+          Best on {difficultyName}: <strong>{$currentHighScore}</strong> moves
+        </p>
+      {/if}
       <button class="restart-btn" on:click={handleRestart}>
         Play Again
       </button>
@@ -92,6 +125,31 @@
     max-width: 90vw;
     width: 320px;
     z-index: 1;
+    position: relative;
+  }
+
+  .new-record-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #f1c40f, #e67e22);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(241, 196, 15, 0.4);
+    animation: badge-pulse 1s ease-in-out infinite alternate;
+  }
+
+  @keyframes badge-pulse {
+    0% {
+      transform: translateX(-50%) scale(1);
+    }
+    100% {
+      transform: translateX(-50%) scale(1.05);
+    }
   }
 
   .trophy {
@@ -100,6 +158,10 @@
     margin: 0 auto 1.5rem;
     color: #f1c40f;
     animation: trophy-bounce 0.6s ease-out;
+  }
+
+  .trophy.new-record {
+    animation: trophy-bounce 0.6s ease-out, trophy-glow 1.5s ease-in-out infinite alternate;
   }
 
   .trophy svg {
@@ -123,6 +185,15 @@
     }
   }
 
+  @keyframes trophy-glow {
+    0% {
+      filter: drop-shadow(0 4px 8px rgba(241, 196, 15, 0.4));
+    }
+    100% {
+      filter: drop-shadow(0 4px 20px rgba(241, 196, 15, 0.8));
+    }
+  }
+
   h2 {
     font-size: 2rem;
     color: #333;
@@ -133,12 +204,23 @@
   .stats {
     font-size: 1.125rem;
     color: #666;
-    margin: 0 0 1.5rem;
+    margin: 0 0 0.5rem;
   }
 
   .stats strong {
     color: #333;
     font-size: 1.5rem;
+  }
+
+  .high-score {
+    font-size: 0.9rem;
+    color: #888;
+    margin: 0 0 1.5rem;
+  }
+
+  .high-score strong {
+    color: #f1c40f;
+    font-weight: 700;
   }
 
   .restart-btn {

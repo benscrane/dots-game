@@ -1,5 +1,6 @@
 <script>
   import { game, GAME_COLORS, isGameWon, isGameLost, DIFFICULTIES } from '../stores/game.js';
+  import { sounds } from '../stores/sounds.js';
 
   const colorMap = {
     red: '#e74c3c',
@@ -11,6 +12,21 @@
   $: difficultyConfig = DIFFICULTIES[$game.difficulty];
   $: moveLimit = difficultyConfig.moveLimit;
   $: isGameOver = $isGameWon || $isGameLost;
+
+  // Track previous move count to detect when a move is made
+  let prevMoveCount = $game.moveCount;
+
+  // Play sounds when a move is made
+  $: {
+    if ($game.moveCount > prevMoveCount) {
+      if ($game.lastMoveHadExplosion) {
+        sounds.explosion();
+      } else if ($game.lastMoveCapturedCells > 0) {
+        sounds.capture();
+      }
+    }
+    prevMoveCount = $game.moveCount;
+  }
 </script>
 
 <div class="controls-panel">
