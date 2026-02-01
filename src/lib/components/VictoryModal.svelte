@@ -1,31 +1,21 @@
 <script>
   import { game, isGameWon, DIFFICULTIES } from '../stores/game.js';
   import { highScores, currentHighScore } from '../stores/highscores.js';
-  import { sounds } from '../stores/sounds.js';
   import { fade, scale } from 'svelte/transition';
-  import { onMount } from 'svelte';
 
   $: moveCount = $game.moveCount;
   $: difficulty = $game.difficulty;
   $: difficultyName = DIFFICULTIES[difficulty].name;
 
   let isNewRecord = false;
-  let hasPlayedSound = false;
 
   // Check for new record when game is won
-  $: if ($isGameWon && !hasPlayedSound) {
+  $: if ($isGameWon) {
     isNewRecord = highScores.checkAndUpdate(difficulty, moveCount);
-    if (isNewRecord) {
-      sounds.newRecord();
-    } else {
-      sounds.victory();
-    }
-    hasPlayedSound = true;
   }
 
-  // Reset sound flag when game resets
+  // Reset record flag when game resets
   $: if (!$isGameWon) {
-    hasPlayedSound = false;
     isNewRecord = false;
   }
 
