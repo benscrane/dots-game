@@ -69,6 +69,8 @@ function createGameStore() {
     grid: createInitialGrid(initialDifficulty.bombCount),
     moveCount: 0,
     difficulty: DEFAULT_DIFFICULTY,
+    lastMoveHadExplosion: false,
+    lastMoveCapturedCells: 0,
   });
 
   return {
@@ -94,6 +96,8 @@ function createGameStore() {
 
         // Track bombs that need to explode
         const bombsToExplode = [];
+        let totalCaptured = 0;
+        let hadExplosion = false;
 
         // Expand to adjacent cells that match the color, tracking waves
         let wave = 0;
@@ -117,10 +121,12 @@ function createGameStore() {
           for (const { i, j } of cellsToCapture) {
             newGrid[i][j].controlled = true;
             newGrid[i][j].animationWave = wave;
+            totalCaptured++;
             // Check if this cell has a bomb
             if (newGrid[i][j].hasBomb) {
               bombsToExplode.push({ i, j, wave });
               newGrid[i][j].hasBomb = false; // Bomb is consumed
+              hadExplosion = true;
             }
           }
 
@@ -150,11 +156,13 @@ function createGameStore() {
                   newGrid[ni][nj].controlled = true;
                   newGrid[ni][nj].color = color;
                   newGrid[ni][nj].animationWave = explosionWave;
+                  totalCaptured++;
 
                   // Chain reaction: if this cell has a bomb, add it to the queue
                   if (newGrid[ni][nj].hasBomb) {
                     bombsToExplode.push({ i: ni, j: nj, wave: explosionWave });
                     newGrid[ni][nj].hasBomb = false;
+                    hadExplosion = true;
                   }
                 }
               }
@@ -166,6 +174,8 @@ function createGameStore() {
           ...state,
           grid: newGrid,
           moveCount: state.moveCount + 1,
+          lastMoveHadExplosion: hadExplosion,
+          lastMoveCapturedCells: totalCaptured,
         };
       });
     },
@@ -176,6 +186,8 @@ function createGameStore() {
         grid: createInitialGrid(config.bombCount),
         moveCount: 0,
         difficulty: difficulty,
+        lastMoveHadExplosion: false,
+        lastMoveCapturedCells: 0,
       });
     },
 
@@ -186,6 +198,8 @@ function createGameStore() {
           grid: createInitialGrid(config.bombCount),
           moveCount: 0,
           difficulty: state.difficulty,
+          lastMoveHadExplosion: false,
+          lastMoveCapturedCells: 0,
         };
       });
     },
